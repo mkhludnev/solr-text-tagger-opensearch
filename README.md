@@ -1,3 +1,7 @@
+# UPD: STATUS
+
+It somehow proves the concept. There are plenty of nocommits and smoke tests are broken undoubtedly. 
+
 # Template for creating OpenSearch Plugins
 This Repo is a GitHub Template repository ([Learn more about that](https://docs.github.com/articles/creating-a-repository-from-a-template/)).
 Using it would create a new repo that is the boilerplate code required for an [OpenSearch Plugin](https://opensearch.org/blog/technical-posts/2021/06/my-first-steps-in-opensearch-plugins/). 

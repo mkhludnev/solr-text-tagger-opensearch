@@ -6,23 +6,13 @@ apply plugin: 'opensearch.opensearchplugin'
 apply plugin: 'opensearch.yaml-rest-test'
 apply plugin: 'opensearch.pluginzip'
 
-def pluginName = 'rename'
-def pluginDescription = 'Custom plugin'
-def projectPath = 'org.opensearch'
-def pathToPlugin = 'path.to.plugin'
-def pluginClassName = 'RenamePlugin'
-group = "RenameGroup"
+def pluginName = 'SolrTextTagger'
+def pluginDescription = 'Tagger Plugin'
+def pluginPackage = 'org.opensearch.solrtexttagger'
+def pathToPlugin = 'solrtexttagger'
+def pluginClassName = 'SolrTextTaggerPlugin'
+group = "TaggerGroup"
 
-
-tasks.register("preparePluginPathDirs") {
-    mustRunAfter clean
-    doLast {
-        def newPath = pathToPlugin.replace(".", "/")
-        mkdir "src/main/java/org/opensearch/$newPath"
-        mkdir "src/test/java/org/opensearch/$newPath"
-        mkdir "src/yamlRestTest/java/org/opensearch/$newPath"
-    }
-}
 
 publishing {
     publications {
@@ -50,7 +40,7 @@ publishing {
 opensearchplugin {
     name pluginName
     description pluginDescription
-    classname "${projectPath}.${pathToPlugin}.${pluginClassName}"
+    classname "${pluginPackage}.${pluginClassName}"
     licenseFile rootProject.file('LICENSE.txt')
     noticeFile rootProject.file('NOTICE.txt')
 }
@@ -63,7 +53,8 @@ validateNebulaPom.enabled = false
 
 buildscript {
     ext {
-        opensearch_version = System.getProperty("opensearch.version", "3.0.0-SNAPSHOT")
+        opensearch_version = System.getProperty("opensearch.version", "2.4.1"//"3.0.0-SNAPSHOT"
+        )
     }
 
     repositories {
@@ -85,6 +76,10 @@ repositories {
     maven { url "https://plugins.gradle.org/m2/" }
 }
 
+dependencies {
+    //implementation ('org.slf4j:slf4j-api:1.7.36')
+}
+
 test {
     include '**/*Tests.class'
 }
@@ -94,6 +89,12 @@ task integTest(type: RestIntegTestTask) {
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
 }
+
+testClusters.integTest {
+    numberOfNodes = 2
+    setting 'node.roles', '[data, cluster_manager]'//
+}
+
 tasks.named("check").configure { dependsOn(integTest) }
 
 integTest {
