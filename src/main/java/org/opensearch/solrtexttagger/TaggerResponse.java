@@ -3,6 +3,7 @@ package org.opensearch.solrtexttagger;
 import org.opensearch.action.support.DefaultShardOperationFailedException;
 import org.opensearch.action.support.broadcast.BroadcastResponse;
 import org.opensearch.common.ParseField;
+import org.opensearch.common.Strings;
 import org.opensearch.common.io.stream.StreamInput;
 import org.opensearch.common.io.stream.StreamOutput;
 import org.opensearch.common.xcontent.ConstructingObjectParser;
@@ -57,6 +58,7 @@ public class TaggerResponse extends BroadcastResponse {
     static {
         TAG_PARSER.declareInt(optionalConstructorArg(), new ParseField("start_offset"));
         TAG_PARSER.declareInt(optionalConstructorArg(), new ParseField("end_offset"));
+        TAG_PARSER.declareStringOrNull(Tag::setMatchText, new ParseField("match_text"));
         TAG_PARSER.declareStringArray(Tag::setIds,new ParseField("ids"));
     }
     private static Tag declareTags(XContentParser p) {
@@ -81,6 +83,10 @@ public class TaggerResponse extends BroadcastResponse {
         final ArrayList<Tag> tags = new ArrayList<>();
         for (int i=0; i<tagz; i++) {
             final Tag tag = new Tag(in.readInt(), in.readInt());
+            final String matchText = in.readOptionalString();
+            if (!Strings.isEmpty(matchText)) {
+                tag.setMatchText(matchText);
+            }
             final List<String> idz = in.readStringList();
             idz.forEach(tag::addId);
             tags.add(tag);
@@ -109,6 +115,7 @@ public class TaggerResponse extends BroadcastResponse {
         for (Tag tg:this.tags){
             out.writeInt(tg.getStartOffset());
             out.writeInt(tg.getEndOffset());
+            out.writeOptionalString(tg.getMatchText());
             out.writeStringCollection(tg.getIds());
         }
         out.writeStringCollection(docs);
@@ -122,6 +129,9 @@ public class TaggerResponse extends BroadcastResponse {
             builder.startObject();
             builder.field("start_offset", tag.getStartOffset());
             builder.field("end_offset", tag.getEndOffset());
+            if (!Strings.isEmpty(tag.getMatchText())) {
+                builder.field("match_text", tag.getMatchText());
+            }
             builder.field("ids",tag.getIds());
             builder.endObject();
         }
